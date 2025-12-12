@@ -39,22 +39,23 @@ function setupEventListeners() {
     button.addEventListener('click', () => {
       const questionContent = button.closest('.question-content');
       const input = questionContent.querySelector('.text-input');
-      
+
       if (input && !input.value.trim()) {
         input.classList.add('error');
         input.focus();
         return;
       }
-      
+
       if (input && input.value.trim()) {
         input.classList.remove('error');
         answers[currentQuestion] = input.value;
+        trackEvent('question_answer', { question: currentQuestion, answer: input.value });
       }
-      
+
       if (currentQuestion === 1) {
         trackEvent('start_click');
       }
-      
+
       nextQuestion();
     });
   });

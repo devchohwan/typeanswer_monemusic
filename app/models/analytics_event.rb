@@ -14,7 +14,10 @@ class AnalyticsEvent < ApplicationRecord
   }
 
   def self.unique_visitors(start_date, end_date)
-    in_date_range(start_date, end_date).distinct.count(:session_id)
+    page_views
+      .in_date_range(start_date, end_date)
+      .distinct
+      .count(:session_id)
   end
 
   def self.conversion_rate(start_date, end_date)
@@ -81,21 +84,29 @@ class AnalyticsEvent < ApplicationRecord
   def self.get_completed_responses(start_date, end_date)
     completed_sessions = in_date_range(start_date, end_date)
       .result_views
-      .pluck(:session_id, :created_at)
+      .group(:session_id)
+      .select('session_id, MAX(created_at) as created_at')
+      .map { |record| [record.session_id, record.created_at] }
       .to_h
     
     responses = []
     
     completed_sessions.each do |session_id, completed_at|
       answers = {}
+      has_answers = false
       
       (3..10).each do |q|
         event = where(session_id: session_id, event_type: 'question_answer')
           .where("json_extract(event_data, '$.question') = ?", q)
+          .order(created_at: :desc)
           .first
         
-        answers[q] = event&.event_data&.dig('answer')
+        answer = event&.event_data&.dig('answer')
+        answers[q] = answer
+        has_answers = true if answer.present?
       end
+      
+      next unless has_answers
       
       responses << {
         session_id: session_id,

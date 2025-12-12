@@ -11,7 +11,7 @@
 
 ### 필수 환경변수
 ```bash
-RAILS_MASTER_KEY=2080135f66a9d7fa92bb00d9984f672d
+RAILS_MASTER_KEY=562c2a376a6d14c782045902d784589a
 RAILS_ENV=production
 SOLID_QUEUE_IN_PUMA=true
 ```
@@ -27,7 +27,7 @@ docker login -u amuguona
 # 2. 빌드, 푸시, 배포
 docker build -t amuguona/typeform:latest . && \
 docker push amuguona/typeform:latest && \
-ssh -i ~/monemusic root@115.68.195.125 "docker stop typeform-app 2>/dev/null || true; docker rm typeform-app 2>/dev/null || true; docker pull amuguona/typeform:latest; docker run -d --name typeform-app --network kamal -p 80:80 -p 443:443 -v typeform_storage:/rails/storage -e RAILS_MASTER_KEY=2080135f66a9d7fa92bb00d9984f672d -e RAILS_ENV=production -e SOLID_QUEUE_IN_PUMA=true amuguona/typeform:latest"
+ssh -i ~/monemusic root@115.68.195.125 "docker stop typeform-app 2>/dev/null || true; docker rm typeform-app 2>/dev/null || true; docker pull amuguona/typeform:latest; docker run -d --name typeform-app --network kamal -v typeform_storage:/rails/storage -e RAILS_MASTER_KEY=562c2a376a6d14c782045902d784589a -e RAILS_ENV=production -e SOLID_QUEUE_IN_PUMA=true amuguona/typeform:latest && docker exec kamal-proxy kamal-proxy deploy typeform-app --target 'typeform-app:80' --host 'typeanswer.monemusic.com' --tls"
 ```
 
 ## 단계별 배포
@@ -69,13 +69,14 @@ docker pull amuguona/typeform:latest
 docker run -d \
   --name typeform-app \
   --network kamal \
-  -p 80:80 \
-  -p 443:443 \
   -v typeform_storage:/rails/storage \
-  -e RAILS_MASTER_KEY=2080135f66a9d7fa92bb00d9984f672d \
+  -e RAILS_MASTER_KEY=562c2a376a6d14c782045902d784589a \
   -e RAILS_ENV=production \
   -e SOLID_QUEUE_IN_PUMA=true \
   amuguona/typeform:latest
+
+# Kamal 프록시에 등록
+docker exec kamal-proxy kamal-proxy deploy typeform-app --target "typeform-app:80" --host "typeanswer.monemusic.com" --tls
 ```
 
 ### 4. 마이그레이션 실행 (필요시)
