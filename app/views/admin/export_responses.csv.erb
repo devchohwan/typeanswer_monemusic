@@ -1,0 +1,14 @@
+<%
+headers = ['완료 시간', '세션 ID'] + (3..10).map { |q| "질문 #{q}: #{@question_titles[q]}" }
+
+csv_string = CSV.generate(encoding: 'UTF-8', force_quotes: true) do |csv|
+  csv << headers
+  @responses.each do |response|
+    row = [
+      response[:completed_at].in_time_zone('Seoul').strftime('%Y-%m-%d %H:%M:%S'),
+      response[:session_id]
+    ] + (3..10).map { |q| @answer_labels.dig(q, response[:answers][q]) || response[:answers][q] || '' }
+    csv << row
+  end
+end
+%><%= "\uFEFF" + csv_string %>

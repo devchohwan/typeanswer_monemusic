@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>관리자 대시보드</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab-button {
+      padding: 12px 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .tab-button:hover {
+      color: #4CAF50;
+    }
+
+    .tab-button.active {
+      color: #4CAF50;
+      border-bottom-color: #4CAF50;
+      font-weight: 600;
+    }
+
+    .date-filter {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .period-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .period-btn {
+      padding: 10px 20px;
+      border: 2px solid #e0e0e0;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .period-btn:hover {
+      border-color: #4CAF50;
+      color: #4CAF50;
+    }
+
+    .period-btn.active {
+      background: #4CAF50;
+      color: white;
+      border-color: #4CAF50;
+    }
+
+    .custom-date {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .custom-date input {
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .apply-btn {
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .apply-btn:hover {
+      background: #45a049;
+    }
+
+    .export-btn {
+      padding: 10px 20px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .export-btn:hover {
+      background: #1976D2;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .metric-card {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .metric-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .metric-value.highlight {
+      color: #4CAF50;
+    }
+
+    .content-section {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .data-table th {
+      background: #f9f9f9;
+      font-weight: 600;
+      color: #666;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .data-table tr:hover {
+      background: #f9f9f9;
+    }
+
+    .drop-off-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bar-container {
+      flex: 1;
+      height: 20px;
+      background: #f0f0f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff6b6b, #ff8787);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    .bar-fill.low {
+      background: linear-gradient(90deg, #51cf66, #69db7c);
+    }
+
+    .bar-fill.medium {
+      background: linear-gradient(90deg, #ffd43b, #ffe066);
+    }
+
+    .percentage {
+      font-weight: 600;
+      min-width: 50px;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+      font-size: 16px;
+    }
+
+    .summary-item {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+
+    .summary-question {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #1a1a1a;
+    }
+
+    .answer-option {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .answer-label {
+      min-width: 200px;
+      font-size: 14px;
+    }
+
+    .answer-bar {
+      flex: 1;
+      height: 30px;
+      background: #f0f0f0;
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .answer-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #66BB6A);
+      transition: width 0.3s ease;
+    }
+
+    .answer-stats {
+      min-width: 120px;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .responses-table-wrapper {
+      overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+      .date-filter {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .period-buttons {
+        flex-wrap: wrap;
+      }
+
+      .custom-date {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .tabs {
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <div class="header">
+      <h1>📊 관리자 대시보드</h1>
+      
+      <div class="tabs">
+        <a href="?tab=insights&period=<%= @period %>&start_date=<%= @start_date %>&end_date=<%= @end_date %>" 
+           class="tab-button <%= 'active' if @tab == 'insights' %>">인사이트</a>
+        <a href="?tab=summary&period=<%= @period %>&start_date=<%= @start_date %>&end_date=<%= @end_date %>" 
+           class="tab-button <%= 'active' if @tab == 'summary' %>">요약</a>
+        <a href="?tab=responses&period=<%= @period %>&start_date=<%= @start_date %>&end_date=<%= @end_date %>" 
+           class="tab-button <%= 'active' if @tab == 'responses' %>">응답</a>
+      </div>
+      
+      <form class="date-filter" method="get" action="/admin/dashboard">
+        <input type="hidden" name="tab" value="<%= @tab %>">
+        <div class="period-buttons">
+          <button type="submit" name="period" value="today" class="period-btn <%= 'active' if @period == 'today' %>">오늘</button>
+          <button type="submit" name="period" value="week" class="period-btn <%= 'active' if @period == 'week' %>">이번주</button>
+          <button type="submit" name="period" value="month" class="period-btn <%= 'active' if @period == 'month' %>">이번달</button>
+        </div>
+        
+        <div class="custom-date">
+          <input type="date" name="start_date" value="<%= @start_date %>" required>
+          <span>~</span>
+          <input type="date" name="end_date" value="<%= @end_date %>" required>
+          <button type="submit" name="period" value="custom" class="apply-btn">적용</button>
+        </div>
+        
+        <% if @tab == 'responses' %>
+          <a href="/admin/export_responses.csv?period=<%= @period %>&start_date=<%= @start_date %>&end_date=<%= @end_date %>" 
+             class="export-btn">📥 엑셀 다운로드</a>
+        <% end %>
+      </form>
+    </div>
+
+    <% if @tab == 'insights' %>
+      <div class="content-section">
+        <h2>📈 인사이트</h2>
+        
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">사이트 조회수</div>
+            <div class="metric-value"><%= @page_views %></div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">순방문자수</div>
+            <div class="metric-value"><%= @unique_visitors %></div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">시작버튼 누른 사람수</div>
+            <div class="metric-value"><%= @start_clicks %></div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">결과화면 도달 사람수</div>
+            <div class="metric-value"><%= @result_views %></div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">결과화면 버튼 클릭수</div>
+            <div class="metric-value"><%= @result_clicks %></div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-label">설문 완료 전환율</div>
+            <div class="metric-value highlight"><%= @conversion_rate %>%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-section">
+        <h2>📉 질문별 이탈률</h2>
+        
+        <% if @drop_off_by_question.any? %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>질문</th>
+                <th>조회수</th>
+                <th>이탈률</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @drop_off_by_question.each do |question_num, data| %>
+                <tr>
+                  <td>
+                    <div style="font-weight: 600; margin-bottom: 4px;">질문 <%= question_num %></div>
+                    <div style="font-size: 13px; color: #666;"><%= @question_titles[question_num] %></div>
+                  </td>
+                  <td><%= data[:viewed] %></td>
+                  <td>
+                    <div class="drop-off-bar">
+                      <div class="bar-container">
+                        <% 
+                          bar_class = if data[:drop_off] < 10
+                            'low'
+                          elsif data[:drop_off] < 30
+                            'medium'
+                          else
+                            ''
+                          end
+                        %>
+                        <div class="bar-fill <%= bar_class %>" style="width: <%= [data[:drop_off], 100].min %>%"></div>
+                      </div>
+                      <span class="percentage"><%= data[:drop_off] %>%</span>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="no-data">
+            선택한 기간에 데이터가 없습니다.
+          </div>
+        <% end %>
+      </div>
+
+    <% elsif @tab == 'summary' %>
+      <div class="content-section">
+        <h2>📊 답변 요약</h2>
+        
+        <% if @answer_summary.any? %>
+          <% (3..10).each do |q| %>
+            <% if @answer_summary[q] && @answer_summary[q].any? %>
+              <div class="summary-item">
+                <div class="summary-question">
+                  질문 <%= q %>: <%= @question_titles[q] %>
+                </div>
+                <% @answer_summary[q].each do |answer_data| %>
+                  <div class="answer-option">
+                    <div class="answer-label">
+                      <%= @answer_labels.dig(q, answer_data[:answer]) || answer_data[:answer] || '(응답 없음)' %>
+                    </div>
+                    <div class="answer-bar">
+                      <div class="answer-bar-fill" style="width: <%= answer_data[:percentage] %>%"></div>
+                    </div>
+                    <div class="answer-stats">
+                      <%= answer_data[:count] %>명 (<%= answer_data[:percentage] %>%)
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        <% else %>
+          <div class="no-data">
+            선택한 기간에 데이터가 없습니다.
+          </div>
+        <% end %>
+      </div>
+
+    <% elsif @tab == 'responses' %>
+      <div class="content-section">
+        <h2>📋 응답 데이터</h2>
+        
+        <% if @responses.any? %>
+          <div class="responses-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>완료 시간 (한국시간)</th>
+                  <% (3..10).each do |q| %>
+                    <th>Q<%= q %></th>
+                  <% end %>
+                </tr>
+              </thead>
+              <tbody>
+                <% @responses.each do |response| %>
+                  <tr>
+                    <td><%= response[:completed_at].in_time_zone('Seoul').strftime('%Y-%m-%d %H:%M:%S') %></td>
+                    <% (3..10).each do |q| %>
+                      <td><%= @answer_labels.dig(q, response[:answers][q]) || response[:answers][q] || '-' %></td>
+                    <% end %>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="no-data">
+            선택한 기간에 완료된 응답이 없습니다.
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</body>
+</html>
