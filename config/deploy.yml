@@ -2,12 +2,12 @@
 service: typeform
 
 # Name of the container image.
-image: your-user/typeform
+image: amuguona/typeform
 
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 115.68.195.125
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -19,13 +19,13 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: true
-  host: app.example.com
+  host: typeanswer.monemusic.com
 
 # Credentials for your image host.
 registry:
   # Specify the registry server, if you're not using Docker Hub
   # server: registry.digitalocean.com / ghcr.io / ...
-  username: your-user
+  username: amuguona
 
   # Always use an access token rather than real password when possible.
   password:
@@ -76,9 +76,8 @@ asset_path: /rails/public/assets
 # Configure the image builder.
 builder:
   arch: amd64
-
-  # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
-  # remote: ssh://docker@docker-builder-server
+  # Build image via remote server
+  remote: ssh://root@115.68.195.125
   #
   # # Pass arguments and secrets to the Docker build process
   # args:
