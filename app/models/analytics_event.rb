@@ -6,6 +6,7 @@ class AnalyticsEvent < ApplicationRecord
   scope :start_clicks, -> { where(event_type: 'start_click') }
   scope :question_views, -> { where(event_type: 'question_view') }
   scope :question_answers, -> { where(event_type: 'question_answer') }
+  scope :question_durations, -> { where(event_type: 'question_duration') }
   scope :result_views, -> { where(event_type: 'result_view') }
   scope :result_clicks, -> { where(event_type: 'result_click') }
   
@@ -54,6 +55,27 @@ class AnalyticsEvent < ApplicationRecord
     results
   end
 
+  def self.average_duration_by_question(start_date, end_date)
+    results = {}
+    
+    (1..10).each do |q|
+      durations = in_date_range(start_date, end_date)
+        .question_durations
+        .where("json_extract(event_data, '$.question') = ?", q)
+        .pluck(Arel.sql("json_extract(event_data, '$.duration')"))
+        .map(&:to_f)
+      
+      if durations.any?
+        avg = (durations.sum / durations.size).round(1)
+        results[q] = { average: avg, count: durations.size }
+      else
+        results[q] = { average: 0, count: 0 }
+      end
+    end
+    
+    results
+  end
+
   def self.get_answer_summary(start_date, end_date)
     summary = {}
     
@@ -82,22 +104,23 @@ class AnalyticsEvent < ApplicationRecord
   end
 
   def self.get_completed_responses(start_date, end_date)
-    completed_sessions = in_date_range(start_date, end_date)
+    result_view_events = in_date_range(start_date, end_date)
       .result_views
-      .group(:session_id)
-      .select('session_id, MAX(created_at) as created_at')
-      .map { |record| [record.session_id, record.created_at] }
-      .to_h
+      .order(created_at: :desc)
     
     responses = []
     
-    completed_sessions.each do |session_id, completed_at|
+    result_view_events.each do |result_event|
+      session_id = result_event.session_id
+      completed_at = result_event.created_at
+      
       answers = {}
       has_answers = false
       
       (3..10).each do |q|
         event = where(session_id: session_id, event_type: 'question_answer')
           .where("json_extract(event_data, '$.question') = ?", q)
+          .where('created_at <= ?', completed_at)
           .order(created_at: :desc)
           .first
         
@@ -115,6 +138,6 @@ class AnalyticsEvent < ApplicationRecord
       }
     end
     
-    responses.sort_by { |r| -r[:completed_at].to_i }
+    responses
   end
 end

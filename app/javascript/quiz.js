@@ -17,6 +17,7 @@ const totalQuestions = 10;
 const answers = {};
 const scores = {};
 let initialized = false;
+let questionStartTime = null;
 
 function initQuiz() {
   if (initialized) return;
@@ -25,6 +26,7 @@ function initQuiz() {
   trackEvent('page_view');
   
   currentQuestion = 1;
+  questionStartTime = Date.now();
   updateProgress();
   setupEventListeners();
 }
@@ -60,6 +62,84 @@ function setupEventListeners() {
     });
   });
 
+  const reviewTitles = document.querySelectorAll('[data-toggle="reviews"]');
+  reviewTitles.forEach(title => {
+    title.replaceWith(title.cloneNode(true));
+  });
+  
+  document.querySelectorAll('[data-toggle="reviews"]').forEach(title => {
+    title.addEventListener('click', () => {
+      const reviewItems = title.nextElementSibling;
+      if (reviewItems && reviewItems.classList.contains('result-review-items')) {
+        title.classList.toggle('collapsed');
+        reviewItems.classList.toggle('collapsed');
+      }
+    });
+    
+    const reviewItems = title.nextElementSibling;
+    if (reviewItems && reviewItems.classList.contains('result-review-items')) {
+      title.classList.add('collapsed');
+      reviewItems.classList.add('collapsed');
+    }
+  });
+
+  const revealButtons = document.querySelectorAll('[data-reveal]');
+  revealButtons.forEach(button => {
+    button.replaceWith(button.cloneNode(true));
+  });
+  
+  document.querySelectorAll('[data-reveal]').forEach(element => {
+    if (element.classList.contains('result-goal-box') || element.tagName === 'BUTTON') {
+      element.classList.add('shimmer-effect');
+    }
+    
+    element.addEventListener('click', () => {
+      const stepId = element.dataset.reveal;
+      const targetSection = document.getElementById(stepId);
+      
+      if (targetSection) {
+        targetSection.style.display = 'block';
+        
+        element.classList.remove('shimmer-effect');
+        
+        if (element.tagName === 'BUTTON') {
+          element.style.display = 'none';
+        }
+        
+        if (stepId === 'step-3' || stepId === 'step1-3') {
+          const timelineItems = targetSection.querySelectorAll('.timeline-item');
+          timelineItems.forEach(item => {
+            const delay = parseInt(item.dataset.delay) || 0;
+            setTimeout(() => {
+              item.classList.add('show');
+            }, delay);
+          });
+          
+          const ctaButton = targetSection.querySelector('.result-cta-button');
+          if (ctaButton) {
+            ctaButton.classList.add('shimmer-effect');
+          }
+          
+          setTimeout(() => {
+            const stickyBar = document.getElementById('sticky-cta');
+            if (stickyBar) {
+              const stickyBtn = stickyBar.querySelector('.sticky-btn');
+              stickyBtn.classList.add('shimmer-effect');
+              
+              if (stepId === 'step1-3') {
+                stickyBtn.href = 'https://vo.la/발성의정석';
+              } else if (stepId === 'step-3') {
+                stickyBtn.href = 'https://vo.la/w9LoHR';
+              }
+              
+              stickyBar.classList.add('show');
+            }
+          }, 1500);
+        }
+      }
+    });
+  });
+
   const optionButtons = document.querySelectorAll('.option-button');
   optionButtons.forEach(button => {
     button.replaceWith(button.cloneNode(true));
@@ -69,7 +149,6 @@ function setupEventListeners() {
     button.addEventListener('click', (e) => {
       const value = e.target.dataset.value;
       const score = parseInt(e.target.dataset.score) || 0;
-      const resultPage = e.target.dataset.result;
       const questionNum = e.target.closest('.question-content').dataset.question;
       answers[questionNum] = value;
       if (score > 0) {
@@ -78,8 +157,8 @@ function setupEventListeners() {
       
       trackEvent('question_answer', { question: parseInt(questionNum), answer: value });
       
-      if (resultPage) {
-        showLoadingThenResult(resultPage);
+      if (questionNum === '10') {
+        showLoadingThenResult();
       } else {
         nextQuestion();
       }
@@ -136,6 +215,11 @@ function nextQuestion() {
     current.classList.remove('active');
   }
   
+  if (questionStartTime) {
+    const duration = (Date.now() - questionStartTime) / 1000;
+    trackEvent('question_duration', { question: currentQuestion, duration: Math.round(duration) });
+  }
+  
   currentQuestion++;
   
   if (currentQuestion > totalQuestions) {
@@ -146,6 +230,7 @@ function nextQuestion() {
   const next = document.querySelector(`.question-content[data-question="${currentQuestion}"]`);
   if (next) {
     next.classList.add('active');
+    questionStartTime = Date.now();
     trackEvent('question_view', { question: currentQuestion });
     updateProgress();
     updateQuestionNumber();
@@ -171,7 +256,7 @@ function updateQuestionNumber() {
   }
 }
 
-function showLoadingThenResult(resultPage) {
+function showLoadingThenResult() {
   document.querySelectorAll('.question-content').forEach(q => q.classList.remove('active'));
   
   const thinkingScreen = document.querySelector('[data-question="thinking-screen"]');
@@ -220,7 +305,7 @@ function showLoadingThenResult(resultPage) {
                 lightbulb.classList.remove('show');
               }
             }
-            showResult(resultPage);
+            showResult();
           }, 500);
         }
       };
@@ -241,36 +326,70 @@ function showResult(resultPage) {
   console.log('총 점수:', totalScore);
   console.log('각 질문 점수:', scores);
   
-  let targetMonths;
-  if (totalScore >= 12 && totalScore <= 17) {
-    targetMonths = 3;
-  } else if (totalScore >= 18 && totalScore <= 22) {
-    targetMonths = 4;
-  } else if (totalScore >= 23 && totalScore <= 28) {
-    targetMonths = 6;
+  let targetResult = '';
+  let reasonHTML = '';
+  let estimatedMonths = 0;
+  
+  if (totalScore >= 18) {
+    targetResult = 'result2';
+    estimatedMonths = 18;
+    reasonHTML = `지금 상태에서는<br><strong>혼자 연습만으로 해결이 어려운 단계예요.</strong><br>실제 수강생 데이터 기준으로도,<br>이 단계에서는 <strong>직접 교정</strong>이 거의 필수였어요.`;
+  } else if (totalScore >= 13) {
+    targetResult = 'result2';
+    estimatedMonths = 15;
+    reasonHTML = `지금 상태에서는<br><strong>혼자 연습만으로 해결하기 어려운 구간</strong>에 와 있어요.<br>실제 수강생 데이터 기준으로도,<br>이 단계에서는 <strong>직접 교정</strong>여부가 큰 차이를 만들어요.`;
+  } else if (totalScore >= 9) {
+    targetResult = 'result1';
+    estimatedMonths = 13;
+    reasonHTML = `온라인으로 시작은 가능하지만<br><strong>방향을 잘못 잡으면 시행착오</strong>가 길어질 수 있어요.<br>포인트가 명확히 정리된 강의로<br><strong>올바른 감각</strong>을 먼저 익히세요.`;
+  } else if (totalScore >= 6) {
+    targetResult = 'result1';
+    estimatedMonths = 11;
+    reasonHTML = `지금 상태에서는<br><strong>온라인 교정만으로도 충분히</strong> 변화를 만들 수 있어요.<br>스스로 감각을 캐치하는 힘이 있어서<br><strong>연습 방향</strong>만 잡히면 빠르게 올라가는 타입입니다.`;
   } else {
-    targetMonths = 3;
+    targetResult = 'result1';
+    estimatedMonths = 9;
+    reasonHTML = `지금 상태에서는<br><strong>온라인 교정만으로도 충분히</strong> 변화를 만들 수 있어요.<br>스스로 감각을 캐치하는 힘이 있어서<br><strong>연습 방향</strong>만 잡히면 빠르게 올라가는 타입입니다.`;
   }
   
   const goalSong = answers['9'] || '당신의 목표곡';
-  const targetResult = resultPage || 'result1';
   
-  trackEvent('result_view', { result_type: targetResult, total_score: totalScore });
+  trackEvent('result_view', { result_type: targetResult, total_score: totalScore, estimated_months: estimatedMonths });
   
   const result = document.querySelector(`.question-content[data-question="${targetResult}"]`);
   if (result) {
-    const goalSongEl = result.querySelector('.goal-song-result');
+    const goalSongElements = result.querySelectorAll('.goal-song-result');
     const monthsEl = result.querySelector('.months-result');
-    const targetMonthsEl = result.querySelector('.target-months');
+    const dynamicReasonText = result.querySelector('.dynamic-reason-text');
     
-    if (goalSongEl) {
-      goalSongEl.textContent = goalSong;
+    if (goalSongElements.length > 0) {
+      goalSongElements.forEach(el => {
+        el.textContent = goalSong;
+      });
     }
+    
+    const stickyCTAGoalSong = document.querySelector('#sticky-cta .goal-song-result');
+    if (stickyCTAGoalSong) {
+      stickyCTAGoalSong.textContent = goalSong;
+    }
+    
+    const stickyBtn = document.querySelector('#sticky-cta .sticky-btn');
+    if (stickyBtn) {
+      if (targetResult === 'result1') {
+        stickyBtn.href = 'https://vo.la/발성의정석';
+        stickyBtn.innerHTML = "'발성의 정석' 0원으로 바로 보기 👉";
+      } else {
+        stickyBtn.href = 'https://vo.la/w9LoHR';
+        stickyBtn.innerHTML = "'매일 수업' 자세히 보기 👉";
+      }
+    }
+    
     if (monthsEl) {
-      monthsEl.textContent = totalScore;
+      monthsEl.textContent = estimatedMonths;
     }
-    if (targetMonthsEl) {
-      targetMonthsEl.textContent = targetMonths + '개월';
+    
+    if (dynamicReasonText) {
+      dynamicReasonText.innerHTML = reasonHTML;
     }
     
     result.classList.add('active');
@@ -295,6 +414,7 @@ function showResult(resultPage) {
 function restart() {
   initialized = false;
   currentQuestion = 1;
+  questionStartTime = null;
   Object.keys(answers).forEach(key => delete answers[key]);
   Object.keys(scores).forEach(key => delete scores[key]);
   

@@ -147,6 +147,7 @@ class AdminController < ApplicationController
     @result_clicks = AnalyticsEvent.result_clicks.in_date_range(@start_date, @end_date).distinct.count(:session_id)
     @conversion_rate = AnalyticsEvent.conversion_rate(@start_date, @end_date)
     @drop_off_by_question = AnalyticsEvent.drop_off_by_question(@start_date, @end_date)
+    @avg_duration_by_question = AnalyticsEvent.average_duration_by_question(@start_date, @end_date)
   end
 
   def load_summary_data

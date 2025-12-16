@@ -405,7 +405,7 @@
       </div>
 
       <div class="content-section">
-        <h2>📉 질문별 이탈률</h2>
+        <h2>📉 질문별 이탈률 & 체류시간</h2>
         
         <% if @drop_off_by_question.any? %>
           <table class="data-table">
@@ -413,6 +413,7 @@
               <tr>
                 <th>질문</th>
                 <th>조회수</th>
+                <th>평균 체류시간</th>
                 <th>이탈률</th>
               </tr>
             </thead>
@@ -424,6 +425,14 @@
                     <div style="font-size: 13px; color: #666;"><%= @question_titles[question_num] %></div>
                   </td>
                   <td><%= data[:viewed] %></td>
+                  <td>
+                    <% if @avg_duration_by_question[question_num][:count] > 0 %>
+                      <span style="font-weight: 600;"><%= @avg_duration_by_question[question_num][:average] %>초</span>
+                      <span style="font-size: 12px; color: #999;"> (n=<%= @avg_duration_by_question[question_num][:count] %>)</span>
+                    <% else %>
+                      <span style="color: #999;">-</span>
+                    <% end %>
+                  </td>
                   <td>
                     <div class="drop-off-bar">
                       <div class="bar-container">
@@ -496,6 +505,7 @@
               <thead>
                 <tr>
                   <th>완료 시간 (한국시간)</th>
+                  <th>세션 ID</th>
                   <% (3..10).each do |q| %>
                     <th>Q<%= q %></th>
                   <% end %>
@@ -505,6 +515,7 @@
                 <% @responses.each do |response| %>
                   <tr>
                     <td><%= response[:completed_at].in_time_zone('Seoul').strftime('%Y-%m-%d %H:%M:%S') %></td>
+                    <td style="font-family: monospace; font-size: 11px; color: #666;"><%= response[:session_id][0..12] %>...</td>
                     <% (3..10).each do |q| %>
                       <td><%= @answer_labels.dig(q, response[:answers][q]) || response[:answers][q] || '-' %></td>
                     <% end %>
