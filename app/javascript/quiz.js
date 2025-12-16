@@ -130,9 +130,9 @@ function setupEventListeners() {
               stickyBtn.classList.add('shimmer-effect');
               
               if (stepId === 'step1-3') {
-                stickyBtn.href = 'https://vo.la/발성의정석';
+                stickyBtn.href = 'https://www.didisam.com/site/monemusic/classes/57166?type=introduction';
               } else if (stepId === 'step-3') {
-                stickyBtn.href = 'https://vo.la/w9LoHR';
+                stickyBtn.href = 'https://www.monemusic.co.kr/offline';
               }
               
               stickyBar.classList.add('show');
@@ -423,10 +423,10 @@ function showResult(resultPage) {
     const stickyBtn = document.querySelector('#sticky-cta .sticky-btn');
     if (stickyBtn) {
       if (targetResult === 'result1') {
-        stickyBtn.href = 'https://vo.la/발성의정석';
+        stickyBtn.href = 'https://www.didisam.com/site/monemusic/classes/57166?type=introduction';
         stickyBtn.innerHTML = "'발성의 정석' 0원으로 바로 보기 👉";
       } else {
-        stickyBtn.href = 'https://vo.la/w9LoHR';
+        stickyBtn.href = 'https://www.monemusic.co.kr/offline';
         stickyBtn.innerHTML = "'매일 수업' 자세히 보기 👉";
       }
     }
