@@ -97,10 +97,13 @@ function setupEventListeners() {
       const stepId = element.dataset.reveal;
       const targetSection = document.getElementById(stepId);
       
+      trackEvent('reveal_click', { step_id: stepId, element_type: element.tagName.toLowerCase() });
+      
       if (targetSection) {
         targetSection.style.display = 'block';
         
         element.classList.remove('shimmer-effect');
+        element.classList.remove('shake-attention');
         
         if (element.tagName === 'BUTTON') {
           element.style.display = 'none';
@@ -136,9 +139,43 @@ function setupEventListeners() {
             }
           }, 1500);
         }
+        
+        if (stepId === 'step1-2' || stepId === 'step-2') {
+          setTimeout(() => {
+            const nextRevealBtn = targetSection.querySelector('[data-reveal]');
+            if (nextRevealBtn && !nextRevealBtn.classList.contains('shake-attention')) {
+              nextRevealBtn.classList.add('shake-attention');
+              setTimeout(() => {
+                nextRevealBtn.classList.remove('shake-attention');
+              }, 800);
+            }
+          }, 3000);
+        }
       }
     });
+    
+    if (element.dataset.reveal === 'step1-2' || element.dataset.reveal === 'step-2') {
+      setTimeout(() => {
+        if (element.offsetParent !== null && !element.classList.contains('shake-attention')) {
+          element.classList.add('shake-attention');
+          
+          const shakeInterval = setInterval(() => {
+            const targetSection = document.getElementById(element.dataset.reveal);
+            if (!targetSection || targetSection.style.display === 'block') {
+              clearInterval(shakeInterval);
+              element.classList.remove('shake-attention');
+            } else {
+              element.classList.add('shake-attention');
+              setTimeout(() => {
+                element.classList.remove('shake-attention');
+              }, 800);
+            }
+          }, 5000);
+        }
+      }, 2000);
+    }
   });
+
 
   const optionButtons = document.querySelectorAll('.option-button');
   optionButtons.forEach(button => {
@@ -207,6 +244,16 @@ function setupEventListeners() {
       }
     });
   });
+  
+  const stickyBtn = document.querySelector('#sticky-cta .sticky-btn');
+  if (stickyBtn) {
+    stickyBtn.addEventListener('click', (e) => {
+      trackEvent('sticky_cta_click', { 
+        button_url: stickyBtn.href,
+        button_text: stickyBtn.textContent.trim()
+      });
+    });
+  }
 }
 
 function nextQuestion() {

@@ -9,6 +9,8 @@ class AnalyticsEvent < ApplicationRecord
   scope :question_durations, -> { where(event_type: 'question_duration') }
   scope :result_views, -> { where(event_type: 'result_view') }
   scope :result_clicks, -> { where(event_type: 'result_click') }
+  scope :reveal_clicks, -> { where(event_type: 'reveal_click') }
+  scope :sticky_cta_clicks, -> { where(event_type: 'sticky_cta_click') }
   
   scope :in_date_range, ->(start_date, end_date) {
     where(created_at: start_date.beginning_of_day..end_date.end_of_day)
