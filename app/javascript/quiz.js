@@ -97,13 +97,10 @@ function setupEventListeners() {
       const stepId = element.dataset.reveal;
       const targetSection = document.getElementById(stepId);
       
-      trackEvent('reveal_click', { step_id: stepId, element_type: element.tagName.toLowerCase() });
-      
       if (targetSection) {
         targetSection.style.display = 'block';
         
         element.classList.remove('shimmer-effect');
-        element.classList.remove('shake-attention');
         
         if (element.tagName === 'BUTTON') {
           element.style.display = 'none';
@@ -130,52 +127,18 @@ function setupEventListeners() {
               stickyBtn.classList.add('shimmer-effect');
               
               if (stepId === 'step1-3') {
-                stickyBtn.href = 'https://www.didisam.com/site/monemusic/classes/57166?type=introduction';
+                stickyBtn.href = 'https://vo.la/발성의정석';
               } else if (stepId === 'step-3') {
-                stickyBtn.href = 'https://www.monemusic.co.kr/offline';
+                stickyBtn.href = 'https://vo.la/w9LoHR';
               }
               
               stickyBar.classList.add('show');
             }
           }, 1500);
         }
-        
-        if (stepId === 'step1-2' || stepId === 'step-2') {
-          setTimeout(() => {
-            const nextRevealBtn = targetSection.querySelector('[data-reveal]');
-            if (nextRevealBtn && !nextRevealBtn.classList.contains('shake-attention')) {
-              nextRevealBtn.classList.add('shake-attention');
-              setTimeout(() => {
-                nextRevealBtn.classList.remove('shake-attention');
-              }, 800);
-            }
-          }, 3000);
-        }
       }
     });
-    
-    if (element.dataset.reveal === 'step1-2' || element.dataset.reveal === 'step-2') {
-      setTimeout(() => {
-        if (element.offsetParent !== null && !element.classList.contains('shake-attention')) {
-          element.classList.add('shake-attention');
-          
-          const shakeInterval = setInterval(() => {
-            const targetSection = document.getElementById(element.dataset.reveal);
-            if (!targetSection || targetSection.style.display === 'block') {
-              clearInterval(shakeInterval);
-              element.classList.remove('shake-attention');
-            } else {
-              element.classList.add('shake-attention');
-              setTimeout(() => {
-                element.classList.remove('shake-attention');
-              }, 800);
-            }
-          }, 5000);
-        }
-      }, 2000);
-    }
   });
-
 
   const optionButtons = document.querySelectorAll('.option-button');
   optionButtons.forEach(button => {
@@ -244,16 +207,6 @@ function setupEventListeners() {
       }
     });
   });
-  
-  const stickyBtn = document.querySelector('#sticky-cta .sticky-btn');
-  if (stickyBtn) {
-    stickyBtn.addEventListener('click', (e) => {
-      trackEvent('sticky_cta_click', { 
-        button_url: stickyBtn.href,
-        button_text: stickyBtn.textContent.trim()
-      });
-    });
-  }
 }
 
 function nextQuestion() {
@@ -423,10 +376,10 @@ function showResult(resultPage) {
     const stickyBtn = document.querySelector('#sticky-cta .sticky-btn');
     if (stickyBtn) {
       if (targetResult === 'result1') {
-        stickyBtn.href = 'https://www.didisam.com/site/monemusic/classes/57166?type=introduction';
+        stickyBtn.href = 'https://vo.la/발성의정석';
         stickyBtn.innerHTML = "'발성의 정석' 0원으로 바로 보기 👉";
       } else {
-        stickyBtn.href = 'https://www.monemusic.co.kr/offline';
+        stickyBtn.href = 'https://vo.la/w9LoHR';
         stickyBtn.innerHTML = "'매일 수업' 자세히 보기 👉";
       }
     }
