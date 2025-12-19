@@ -11,6 +11,9 @@ class AnalyticsEvent < ApplicationRecord
   scope :result_clicks, -> { where(event_type: 'result_click') }
   scope :reveal_clicks, -> { where(event_type: 'reveal_click') }
   scope :sticky_cta_clicks, -> { where(event_type: 'sticky_cta_click') }
+  scope :reason_view_clicks, -> { where(event_type: 'reason_view_click') }
+  scope :change_view_clicks, -> { where(event_type: 'change_view_click') }
+  scope :course_cta_clicks, -> { where(event_type: 'course_cta_click') }
   
   scope :in_date_range, ->(start_date, end_date) {
     where(created_at: start_date.beginning_of_day..end_date.end_of_day)
@@ -31,7 +34,7 @@ class AnalyticsEvent < ApplicationRecord
   end
 
   def self.drop_off_by_question(start_date, end_date)
-    questions = (1..10).to_a
+    questions = (1..8).to_a
     results = {}
     
     questions.each do |q|
@@ -40,7 +43,7 @@ class AnalyticsEvent < ApplicationRecord
         .where("json_extract(event_data, '$.question') = ?", q)
         .distinct.count(:session_id)
       
-      next_viewed = if q < 10
+      next_viewed = if q < 8
         in_date_range(start_date, end_date)
           .question_views
           .where("json_extract(event_data, '$.question') = ?", q + 1)
@@ -60,7 +63,7 @@ class AnalyticsEvent < ApplicationRecord
   def self.average_duration_by_question(start_date, end_date)
     results = {}
     
-    (1..10).each do |q|
+    (1..8).each do |q|
       durations = in_date_range(start_date, end_date)
         .question_durations
         .where("json_extract(event_data, '$.question') = ?", q)
@@ -81,7 +84,7 @@ class AnalyticsEvent < ApplicationRecord
   def self.get_answer_summary(start_date, end_date)
     summary = {}
     
-    (3..10).each do |q|
+    (2..8).each do |q|
       answers = in_date_range(start_date, end_date)
         .question_answers
         .where("json_extract(event_data, '$.question') = ?", q)
@@ -119,7 +122,7 @@ class AnalyticsEvent < ApplicationRecord
       answers = {}
       has_answers = false
       
-      (3..10).each do |q|
+      (2..8).each do |q|
         event = where(session_id: session_id, event_type: 'question_answer')
           .where("json_extract(event_data, '$.question') = ?", q)
           .where('created_at <= ?', completed_at)

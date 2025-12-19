@@ -13,7 +13,7 @@ function trackEvent(eventType, eventData = {}) {
 }
 
 let currentQuestion = 1;
-const totalQuestions = 10;
+const totalQuestions = 8;
 const answers = {};
 const scores = {};
 let initialized = false;
@@ -29,26 +29,22 @@ function initQuiz() {
   questionStartTime = Date.now();
   updateProgress();
   setupEventListeners();
+  
+  window.testNextQuestion = nextQuestion;
 }
 
 function setupEventListeners() {
-  const nextButtons = document.querySelectorAll('[data-action="next"]');
-  nextButtons.forEach(button => {
-    button.replaceWith(button.cloneNode(true));
-  });
-  
   document.querySelectorAll('[data-action="next"]').forEach(button => {
     button.addEventListener('click', () => {
       const questionContent = button.closest('.question-content');
       const input = questionContent.querySelector('.text-input');
 
-      if (input && !input.value.trim()) {
-        input.classList.add('error');
-        input.focus();
-        return;
-      }
-
-      if (input && input.value.trim()) {
+      if (input) {
+        if (!input.value.trim()) {
+          input.classList.add('error');
+          input.focus();
+          return;
+        }
         input.classList.remove('error');
         answers[currentQuestion] = input.value;
         trackEvent('question_answer', { question: currentQuestion, answer: input.value });
@@ -58,14 +54,15 @@ function setupEventListeners() {
         trackEvent('start_click');
       }
 
-      nextQuestion();
+      if (currentQuestion === 8) {
+        showLoadingThenResult();
+      } else {
+        nextQuestion();
+      }
     });
   });
 
   const reviewTitles = document.querySelectorAll('[data-toggle="reviews"]');
-  reviewTitles.forEach(title => {
-    title.replaceWith(title.cloneNode(true));
-  });
   
   document.querySelectorAll('[data-toggle="reviews"]').forEach(title => {
     title.addEventListener('click', () => {
@@ -84,9 +81,6 @@ function setupEventListeners() {
   });
 
   const revealButtons = document.querySelectorAll('[data-reveal]');
-  revealButtons.forEach(button => {
-    button.replaceWith(button.cloneNode(true));
-  });
   
   document.querySelectorAll('[data-reveal]').forEach(element => {
     if (element.classList.contains('result-goal-box') || element.tagName === 'BUTTON') {
@@ -96,6 +90,12 @@ function setupEventListeners() {
     element.addEventListener('click', () => {
       const stepId = element.dataset.reveal;
       const targetSection = document.getElementById(stepId);
+      
+      if (stepId === 'step1-2') {
+        trackEvent('reason_view_click');
+      } else if (stepId === 'step1-3') {
+        trackEvent('change_view_click');
+      }
       
       if (targetSection) {
         targetSection.style.display = 'block';
@@ -107,17 +107,13 @@ function setupEventListeners() {
         }
         
         if (stepId === 'step-3' || stepId === 'step1-3') {
-          const timelineItems = targetSection.querySelectorAll('.timeline-item');
-          timelineItems.forEach(item => {
-            const delay = parseInt(item.dataset.delay) || 0;
-            setTimeout(() => {
-              item.classList.add('show');
-            }, delay);
-          });
-          
           const ctaButton = targetSection.querySelector('.result-cta-button');
           if (ctaButton) {
             ctaButton.classList.add('shimmer-effect');
+            
+            ctaButton.addEventListener('click', () => {
+              trackEvent('course_cta_click', { url: ctaButton.href });
+            }, { once: true });
           }
           
           setTimeout(() => {
@@ -125,25 +121,17 @@ function setupEventListeners() {
             if (stickyBar) {
               const stickyBtn = stickyBar.querySelector('.sticky-btn');
               stickyBtn.classList.add('shimmer-effect');
-              
-              if (stepId === 'step1-3') {
-                stickyBtn.href = 'https://vo.la/발성의정석';
-              } else if (stepId === 'step-3') {
-                stickyBtn.href = 'https://vo.la/w9LoHR';
-              }
+              stickyBtn.href = 'https://vo.la/발성의정석';
               
               stickyBar.classList.add('show');
             }
-          }, 1500);
+          }, 500);
         }
       }
     });
   });
 
   const optionButtons = document.querySelectorAll('.option-button');
-  optionButtons.forEach(button => {
-    button.replaceWith(button.cloneNode(true));
-  });
   
   document.querySelectorAll('.option-button').forEach(button => {
     button.addEventListener('click', (e) => {
@@ -157,18 +145,11 @@ function setupEventListeners() {
       
       trackEvent('question_answer', { question: parseInt(questionNum), answer: value });
       
-      if (questionNum === '10') {
-        showLoadingThenResult();
-      } else {
-        nextQuestion();
-      }
+      nextQuestion();
     });
   });
 
   const submitButtons = document.querySelectorAll('[data-action="submit"]');
-  submitButtons.forEach(button => {
-    button.replaceWith(button.cloneNode(true));
-  });
   
   document.querySelectorAll('[data-action="submit"]').forEach(button => {
     button.addEventListener('click', () => {
@@ -182,18 +163,11 @@ function setupEventListeners() {
   });
 
   const restartButtons = document.querySelectorAll('[data-action="restart"]');
-  restartButtons.forEach(button => {
-    button.replaceWith(button.cloneNode(true));
-  });
   
   document.querySelectorAll('[data-action="restart"]').forEach(button => {
     button.addEventListener('click', () => restart());
   });
 
-  document.querySelectorAll('.text-input').forEach(input => {
-    const newInput = input.cloneNode(true);
-    input.replaceWith(newInput);
-  });
   
   document.querySelectorAll('.text-input').forEach(input => {
     input.addEventListener('keypress', (e) => {
@@ -330,29 +304,59 @@ function showResult(resultPage) {
   let reasonHTML = '';
   let estimatedMonths = 0;
   
-  if (totalScore >= 18) {
-    targetResult = 'result2';
-    estimatedMonths = 18;
-    reasonHTML = `지금 상태에서는<br><strong>혼자 연습만으로 해결이 어려운 단계예요.</strong><br>실제 수강생 데이터 기준으로도,<br>이 단계에서는 <strong>직접 교정</strong>이 거의 필수였어요.`;
-  } else if (totalScore >= 13) {
-    targetResult = 'result2';
-    estimatedMonths = 15;
-    reasonHTML = `지금 상태에서는<br><strong>혼자 연습만으로 해결하기 어려운 구간</strong>에 와 있어요.<br>실제 수강생 데이터 기준으로도,<br>이 단계에서는 <strong>직접 교정</strong>여부가 큰 차이를 만들어요.`;
-  } else if (totalScore >= 9) {
+  let reason1 = '';
+  const q1Answer = answers['2'];
+  if (q1Answer === 'monthly') {
+    reason1 = '노래를 한 달에 한번 하고 있다면 연습량이 부족해요.';
+  } else if (q1Answer === 'weekly') {
+    reason1 = '노래를 일주일에 한번 하고 있다면 연습량이 부족해요.';
+  } else if (q1Answer === 'daily') {
+    reason1 = '노래를 매일 하시는 건 잘하고 있어요.';
+  }
+  
+  let reason2 = '';
+  const q2Answer = answers['3'];
+  let q2Text = '';
+  if (q2Answer === 'high-note') {
+    q2Text = '고음이 어렵다는';
+  } else if (q2Answer === 'crack') {
+    q2Text = '목소리가 갈라진다는';
+  } else if (q2Answer === 'breath') {
+    q2Text = '1절밖에 못 부르고 숨이 찬다는';
+  }
+  if (q2Text) {
+    reason2 = `${q2Text} 문제는 내 목소리의 기준이 없어서입니다.<br>발성의 정석을 통해 지금 내 소리가 맞는지, 틀린지를 <br>스스로 구분할 수 있게 되면 자연스럽게 해결됩니다.`;
+  }
+  
+  let reason3 = '';
+  const q3Answer = answers['4'];
+  if (q3Answer === 'sol2') {
+    reason3 = '노래 쓸 수 있는 최고음이 2옥타브 솔 이하라면 음역대의 확장이 필수예요.<br>가성과 저음을 연결하는 법을 먼저 배우셔야 합니다.';
+  } else if (q3Answer === 'unknown') {
+    reason3 = '노래에 쓸 수 있는 최고음을 모른다면 음역대의 확장이 필요한 경우가 대부분이에요.<br>가성과 저음을 연결하는 법을 먼저 배우셔야 합니다.';
+  } else if (q3Answer === 'do3') {
+    reason3 = '현재 최고음이 3옥타브 도까지라면,<br>고음과 저음에서의 톤이 바뀌지 않는지, <br>내가 원하는 목소리가 나오는지를 점검하셔야 해요.<br><br>고음이 어떤 날은 되고, 어떤 날은 안되는 문제가 있을 수 있어요.<br><br>그렇다면 발성의 기준이 잡히지 않은 상태이니,<br>발성의 정석을 통해 기초발성을 다시 점검하시는 게 맞습니다.';
+  } else if (q3Answer === 'sol3') {
+    reason3 = '현재 최고음이 3옥타브 솔까지라면,<br>고음과 저음에서의 톤이 바뀌지 않는지,<br>내가 원하는 목소리가 나오는지를 점검하셔야 해요.<br><br>고음이 어떤 날은 되고, 어떤 날은 안되는 문제가 있을 수 있어요.<br><br>그렇다면 발성의 기준이 잡히지 않은 상태이니,<br>발성의 정석을 통해 기초발성을 다시 점검하시는 게 맞습니다.';
+  }
+  
+  const reasonParts = [reason1, reason2, reason3].filter(r => r);
+  reasonHTML = reasonParts.join('<br><br>');
+  
+  let insightText = '';
+  
+  if (totalScore >= 9) {
     targetResult = 'result1';
     estimatedMonths = 13;
-    reasonHTML = `온라인으로 시작은 가능하지만<br><strong>방향을 잘못 잡으면 시행착오</strong>가 길어질 수 있어요.<br>포인트가 명확히 정리된 강의로<br><strong>올바른 감각</strong>을 먼저 익히세요.`;
   } else if (totalScore >= 6) {
     targetResult = 'result1';
     estimatedMonths = 11;
-    reasonHTML = `지금 상태에서는<br><strong>온라인 교정만으로도 충분히</strong> 변화를 만들 수 있어요.<br>스스로 감각을 캐치하는 힘이 있어서<br><strong>연습 방향</strong>만 잡히면 빠르게 올라가는 타입입니다.`;
   } else {
     targetResult = 'result1';
     estimatedMonths = 9;
-    reasonHTML = `지금 상태에서는<br><strong>온라인 교정만으로도 충분히</strong> 변화를 만들 수 있어요.<br>스스로 감각을 캐치하는 힘이 있어서<br><strong>연습 방향</strong>만 잡히면 빠르게 올라가는 타입입니다.`;
   }
   
-  const goalSong = answers['9'] || '당신의 목표곡';
+  const goalSong = answers['8'] || '당신의 목표곡';
   
   trackEvent('result_view', { result_type: targetResult, total_score: totalScore, estimated_months: estimatedMonths });
   
@@ -375,13 +379,8 @@ function showResult(resultPage) {
     
     const stickyBtn = document.querySelector('#sticky-cta .sticky-btn');
     if (stickyBtn) {
-      if (targetResult === 'result1') {
-        stickyBtn.href = 'https://vo.la/발성의정석';
-        stickyBtn.innerHTML = "'발성의 정석' 0원으로 바로 보기 👉";
-      } else {
-        stickyBtn.href = 'https://vo.la/w9LoHR';
-        stickyBtn.innerHTML = "'매일 수업' 자세히 보기 👉";
-      }
+      stickyBtn.href = 'https://vo.la/발성의정석';
+      stickyBtn.innerHTML = "\'발성의 정석\' 0원으로 바로 보기 👉";
     }
     
     if (monthsEl) {
@@ -390,6 +389,14 @@ function showResult(resultPage) {
     
     if (dynamicReasonText) {
       dynamicReasonText.innerHTML = reasonHTML;
+    }
+    
+    const analysisBox = result.querySelector('.result-analysis-summary');
+    if (analysisBox) {
+      const insightTextEl = analysisBox.querySelector('.result-insight-text');
+      if (insightTextEl && insightText) {
+        insightTextEl.innerHTML = insightText;
+      }
     }
     
     result.classList.add('active');
@@ -406,6 +413,27 @@ function showResult(resultPage) {
     resultButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         trackEvent('result_click', { result_type: targetResult, button_url: btn.href });
+      });
+    });
+    
+    const progressBar = document.querySelector('.progress-bar');
+    const stickyBar = document.getElementById('sticky-cta');
+    if (progressBar) progressBar.style.display = 'none';
+    if (stickyBar) stickyBar.style.display = 'none';
+    
+    const flipCards = result.querySelectorAll('.flip-card');
+    flipCards.forEach(card => {
+      card.addEventListener('click', function() {
+        this.querySelector('.flip-card-inner').classList.toggle('flipped');
+        
+        const anyFlipped = Array.from(flipCards).some(c => 
+          c.querySelector('.flip-card-inner').classList.contains('flipped')
+        );
+        
+        if (anyFlipped) {
+          if (progressBar) progressBar.style.display = 'block';
+          if (stickyBar) stickyBar.style.display = 'flex';
+        }
       });
     });
   }
@@ -435,3 +463,9 @@ function restart() {
 
 document.addEventListener('turbo:load', initQuiz);
 document.addEventListener('DOMContentLoaded', initQuiz);
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initQuiz);
+} else {
+  initQuiz();
+}

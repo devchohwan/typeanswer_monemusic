@@ -484,6 +484,297 @@ body {
   font-weight: 700;
 }
 
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30px 20px;
+  margin: 20px 0;
+  gap: 0;
+  position: relative;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  text-align: center;
+  position: relative;
+  opacity: 0;
+  animation: fadeInStep 0.5s ease-out forwards;
+}
+
+.progress-step:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.progress-step:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.progress-step:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.progress-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transform: translateY(-50%);
+  z-index: -1;
+  animation: fadeInLine 0.5s ease-out forwards;
+}
+
+.progress-step:nth-child(1)::after {
+  animation-delay: 0.15s;
+}
+
+.progress-step:nth-child(2)::after {
+  animation-delay: 0.45s;
+}
+
+@keyframes fadeInStep {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLine {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.progress-text-above {
+  font-size: 0.85rem;
+  color: #333;
+  margin-bottom: 10px;
+  font-weight: 600;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.progress-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.progress-text-below {
+  font-size: 0.8rem;
+  color: #6A0DAD;
+  margin-top: 10px;
+  font-weight: 700;
+  background: #f3e5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.progress-message {
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #555;
+  margin: 30px 20px 20px;
+}
+
+.result-offer-description {
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #333;
+  margin: 30px 20px;
+  padding: 25px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
+  border-radius: 12px;
+  border: 2px solid #667eea;
+  font-weight: 500;
+}
+
+.flip-cards-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin: 30px 20px;
+}
+
+.flip-card {
+  width: 234px;
+  height: 416px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.flip-card-front {
+  background: #000;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.flip-card-icon {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+}
+
+.flip-card-back {
+  background: white;
+  color: #6A0DAD;
+  border: 2px solid #667eea;
+  transform: rotateY(180deg);
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.flip-card-front p,
+.flip-card-back p {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .flip-cards-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .flip-card {
+    width: 208px;
+    height: 364px;
+  }
+  
+  .flip-card-icon {
+    width: 65px;
+    height: 65px;
+  }
+  
+  .progress-message {
+    font-size: 0.85rem;
+    margin: 20px 15px 15px;
+  }
+}
+
+.progress-line {
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  margin: 0 0;
+  position: relative;
+  top: 0;
+  opacity: 0;
+  animation: fadeInLine 0.5s ease-out forwards;
+  transform-origin: left center;
+}
+
+.progress-line:nth-of-type(2) {
+  animation-delay: 0.15s;
+}
+
+.progress-line:nth-of-type(4) {
+  animation-delay: 0.45s;
+}
+
+@media (max-width: 600px) {
+  .progress-indicator {
+    padding: 20px 10px;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .progress-step {
+    width: 100%;
+  }
+  
+  .progress-step:not(:last-child)::after {
+    left: 50%;
+    top: calc(100% + 10px);
+    width: 3px;
+    height: 20px;
+    transform: translateX(-50%) scaleY(0);
+    transform-origin: top center;
+  }
+  
+  @keyframes fadeInLine {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) scaleY(0);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) scaleY(1);
+    }
+  }
+  
+  .progress-text-above {
+    font-size: 0.75rem;
+    min-height: 35px;
+  }
+  
+  .progress-circle {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .progress-text-below {
+    font-size: 0.7rem;
+  }
+}
+
 .result-insight-box {
   background-color: #fafafa;
   margin: 0 0 20px 0;
@@ -639,6 +930,7 @@ body {
   border-radius: 10px;
   font-weight: 700;
   font-size: 1.1rem;
+  text-align: center;
   transition: transform 0.2s;
   box-shadow: 0 4px 15px rgba(123, 31, 162, 0.4);
 }

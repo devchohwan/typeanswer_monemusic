@@ -393,18 +393,18 @@
           </div>
           
           <div class="metric-card">
-            <div class="metric-label">결과화면 버튼 클릭수</div>
-            <div class="metric-value"><%= @result_clicks %></div>
+            <div class="metric-label">'이 결과가 나온 이유 보기' 클릭</div>
+            <div class="metric-value"><%= @reason_view_clicks %></div>
           </div>
           
           <div class="metric-card">
-            <div class="metric-label">단축 방법 보기 클릭</div>
-            <div class="metric-value"><%= @reveal_clicks %></div>
+            <div class="metric-label">'변화 보기' 클릭</div>
+            <div class="metric-value"><%= @change_view_clicks %></div>
           </div>
           
           <div class="metric-card">
-            <div class="metric-label">스티키바 CTA 클릭</div>
-            <div class="metric-value"><%= @sticky_cta_clicks %></div>
+            <div class="metric-label">'발성의 정석' 클릭수</div>
+            <div class="metric-value"><%= @course_cta_clicks %></div>
           </div>
           
           <div class="metric-card">
@@ -476,7 +476,7 @@
         <h2>📊 답변 요약</h2>
         
         <% if @answer_summary.any? %>
-          <% (3..10).each do |q| %>
+          <% (2..8).each do |q| %>
             <% if @answer_summary[q] && @answer_summary[q].any? %>
               <div class="summary-item">
                 <div class="summary-question">
@@ -516,7 +516,7 @@
                 <tr>
                   <th>완료 시간 (한국시간)</th>
                   <th>세션 ID</th>
-                  <% (3..10).each do |q| %>
+                  <% (2..8).each do |q| %>
                     <th>Q<%= q %></th>
                   <% end %>
                 </tr>
@@ -526,7 +526,7 @@
                   <tr>
                     <td><%= response[:completed_at].in_time_zone('Seoul').strftime('%Y-%m-%d %H:%M:%S') %></td>
                     <td style="font-family: monospace; font-size: 11px; color: #666;"><%= response[:session_id][0..12] %>...</td>
-                    <% (3..10).each do |q| %>
+                    <% (2..8).each do |q| %>
                       <td><%= @answer_labels.dig(q, response[:answers][q]) || response[:answers][q] || '-' %></td>
                     <% end %>
                   </tr>
